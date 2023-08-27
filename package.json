@@ -1,6 +1,6 @@
 {
   "name": "@matters/passphrases",
-  "version": "0.0.1-alpha.6",
+  "version": "0.0.1-alpha.7",
   "description": "",
   "author": "https://github.com/thematters",
   "homepage": "https://github.com/thematters/passphrases",
@@ -32,6 +32,17 @@
         "node": "./dist/index.cjs",
         "default": "./dist/index.cjs"
       }
+    },
+    "./dict": {
+      "types": "./dist/dict.d.ts",
+      "import": {
+        "node": "./dist/dict.js",
+        "default": "./dist/dict.js"
+      },
+      "require": {
+        "node": "./dist/dict.cjs",
+        "default": "./dist/dict.cjs"
+      }
     }
   },
   "files": [
@@ -44,7 +55,7 @@
     "build:dict": "node --loader ts-node/esm --experimental-specifier-resolution=node ./bin/build-dict.ts",
     "shuffle:dict": "node --loader ts-node/esm --experimental-specifier-resolution=node ./bin/shuffle-dict.ts",
     "format": "prettier --write \"{src,}/**/*.{ts,tsx,json}\"",
-    "lint": "tsc && eslint",
+    "lint": "eslint",
     "test": "vitest --run",
     "prepare": "husky install",
     "benchmark": "node --loader ts-node/esm --experimental-specifier-resolution=node ./bin/estimate-memory-usage.ts"

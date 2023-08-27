@@ -11,9 +11,10 @@ npm i @matters/passphrases
 ```
 
 ```js
-import { generate, verify, loadDict, loadIndexDict } from '@matters/passphrases'
+import { generate, verify } from '@matters/passphrases'
 
 // load default dict or your custom dict
+import { loadDict, loadIndexDict } from '@matters/passphrases/dict'
 const dict = loadDict()
 const indexDict = loadIndexDict()
 
