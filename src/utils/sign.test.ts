@@ -1,13 +1,9 @@
 import { test, expect, describe } from 'vitest'
-import { sign as signNode } from './sign.node'
-import { sign as signBrowser } from './sign.browser'
+import { sign } from './sign'
 
 const getSecret = () => (Math.random() + 1).toString(36).substring(7)
 
-describe.each([
-  { type: 'node', sign: signNode },
-  { type: 'browser', sign: signBrowser },
-])('sign in $type', ({ sign }) => {
+describe('sign', () => {
   test('can sign with sha256', async () => {
     const data = 'test'
     const secret = getSecret()

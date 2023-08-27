@@ -1,6 +1,6 @@
 {
   "name": "@matters/passphrases",
-  "version": "0.0.1-alpha.5",
+  "version": "0.0.1-alpha.6",
   "description": "",
   "author": "https://github.com/thematters",
   "homepage": "https://github.com/thematters/passphrases",
@@ -19,19 +19,19 @@
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.cjs",
-  "module": "./dist/index.esm.js",
-  "browser": "./dist/index.browser.js",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "node": "./dist/index.cjs",
-      "browser": "./dist/index.browser.js",
-      "default": "./dist/index.esm.js"
-    },
-    "./browser": {
-      "types": "./dist/index.browser.d.ts",
-      "default": "./dist/index.browser.js"
+      "import": {
+        "node": "./dist/index.js",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "node": "./dist/index.cjs",
+        "default": "./dist/index.cjs"
+      }
     }
   },
   "files": [
@@ -39,7 +39,8 @@
     "corpus/dict.json"
   ],
   "scripts": {
-    "build": "rollup -c --bundleConfigAsCjs",
+    "build": "tsup",
+    "dev": "tsup --watch --clean=false",
     "build:dict": "node --loader ts-node/esm --experimental-specifier-resolution=node ./bin/build-dict.ts",
     "shuffle:dict": "node --loader ts-node/esm --experimental-specifier-resolution=node ./bin/shuffle-dict.ts",
     "format": "prettier --write \"{src,}/**/*.{ts,tsx,json}\"",
@@ -49,13 +50,6 @@
     "benchmark": "node --loader ts-node/esm --experimental-specifier-resolution=node ./bin/estimate-memory-usage.ts"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^25.0.2",
-    "@rollup/plugin-node-resolve": "^15.1.0",
-    "@rollup/plugin-replace": "^5.0.2",
-    "@rollup/plugin-terser": "^0.4.3",
-    "@rollup/plugin-typescript": "^11.1.1",
-    "@types/fs-extra": "^11.0.1",
-    "@types/jest": "^29.5.2",
     "@types/node": "^20.3.2",
     "@types/react": "^17.0.53",
     "@types/react-dom": "^17.0.19",
@@ -68,15 +62,11 @@
     "eslint-plugin-promise": "^6.1.1",
     "eslint-plugin-react": "^7.32.2",
     "eslint-plugin-simple-import-sort": "^10.0.0",
-    "fs-extra": "^11.1.1",
     "husky": "^8.0.3",
     "object-sizeof": "^2.6.3",
     "prettier": "^2.8.8",
-    "rollup": "^3.25.3",
-    "rollup-plugin-dts": "^5.3.0",
-    "rollup-plugin-generate-package-json": "^3.2.0",
     "ts-node": "^10.9.1",
-    "tslib": "^2.6.0",
+    "tsup": "^7.2.0",
     "typescript": "^5.1.3",
     "vitest": "^0.32.2"
   },
