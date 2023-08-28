@@ -1,5 +1,12 @@
 import { test, expect, describe } from 'vitest'
-import { generate, verify } from '.'
+import {
+  DictError,
+  InputError,
+  PassphrasesExpiredError,
+  PassphrasesMismatchError,
+  generate,
+  verify,
+} from '.'
 import { getStartOfDate } from './utils'
 import { loadDict, loadIndexDict } from './utils/dict'
 
@@ -57,7 +64,7 @@ describe('Passphrases', () => {
         sigDict: dict,
         expDict: dict,
       })
-    }).rejects.toThrowError('`sigSecret` is required.')
+    }).rejects.toThrowError(InputError)
   })
 
   test('generate: take', async () => {
@@ -75,7 +82,7 @@ describe('Passphrases', () => {
         expDict: dict,
         take: 200,
       })
-    }).rejects.toThrowError('Not enough words.')
+    }).rejects.toThrowError(DictError)
   })
 
   test('generate: custom dict', async () => {
@@ -160,7 +167,7 @@ describe('Passphrases', () => {
         expDict: dict,
         expIndexDict: indexDict,
       })
-    }).rejects.toThrowError('Passphrases expired.')
+    }).rejects.toThrowError(PassphrasesExpiredError)
   })
 
   test('verify: wrong exp word', async () => {
@@ -194,7 +201,7 @@ describe('Passphrases', () => {
         expIndexDict: indexDict,
         take,
       })
-    }).rejects.toThrowError('Unable to convert expWord to exp.')
+    }).rejects.toThrowError(DictError)
   })
 
   test('verify: wrong passphrases', async () => {
@@ -221,6 +228,6 @@ describe('Passphrases', () => {
         expDict: dict,
         expIndexDict: indexDict,
       })
-    }).rejects.toThrowError('Passphrases mismatch.')
+    }).rejects.toThrowError(PassphrasesMismatchError)
   })
 })
