@@ -15,11 +15,11 @@ import { sign } from './utils/sign'
 type Generate = {
   // signing
   sigPayload: {
-    // timestamp of expiration date in milliseconds
-    exp: number
     // other payload data
     [key: string]: number | string
   }
+  // timestamp of expiration date in milliseconds
+  sigExp: number
   sigAlgorithm?: 'sha256' | 'sha512'
   sigSecret: string
 
@@ -33,7 +33,8 @@ type Generate = {
 }
 
 export const generate = async ({
-  sigPayload: { exp, ...restPayload },
+  sigPayload,
+  sigExp,
   sigAlgorithm = 'sha256',
   sigSecret,
   sigDict,
@@ -45,8 +46,14 @@ export const generate = async ({
   if (!sigSecret || sigSecret.length <= 0)
     throw new InputError('`sigSecret` is required.')
 
-  const normalizedExp = toTimeDiff(exp, expDictDiffSince)
-  const payload = encode(JSON.stringify({ exp: normalizedExp, ...restPayload }))
+  const normalizedExp = toTimeDiff(sigExp, expDictDiffSince)
+  const payload = encode(
+    JSON.stringify({
+      ...sigPayload,
+      exp: normalizedExp,
+      since: expDictDiffSince,
+    })
+  )
   const header = encode(JSON.stringify({ alg: sigAlgorithm }))
   const signature = await sign(`${header}.${payload}`, sigSecret, sigAlgorithm)
 
@@ -63,7 +70,7 @@ export const generate = async ({
   // exp to word
   let expWord: string | null | undefined = undefined
   try {
-    expWord = await expDict.get(toTimeDiff(exp, expDictDiffSince))
+    expWord = await expDict.get(toTimeDiff(sigExp, expDictDiffSince))
   } catch (err) {
     throw new DictError('Unable to convert exp to word.')
   }

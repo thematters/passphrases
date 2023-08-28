@@ -15,7 +15,6 @@ type Verify = {
   passphrases: string[]
 
   // signing
-  // payload data without `exp`
   sigPayload: {
     [key: string]: number | string
   }
@@ -54,8 +53,8 @@ export const verify = async ({
   // compare passphrases
   const newPassphrases = await generate({
     ...props,
+    sigExp: expirationDate,
     expDictDiffSince,
-    sigPayload: { ...props.sigPayload, exp: expirationDate },
   })
   const isSame = passphrases.join('') === newPassphrases.join('')
   if (!isSame) {
