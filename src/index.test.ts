@@ -13,13 +13,13 @@ import { loadDict, loadIndexDict } from './utils/dict'
 const getSecret = () => (Math.random() + 1).toString(36).substring(7)
 const getExpration = () => Date.now() + 1000 * 60 * 5
 
-describe('Passphrases', () => {
+describe('Generate Passphrases', () => {
   const dict = loadDict()
   const indexDict = loadIndexDict()
 
   test('generate & verify', async () => {
-    const exp = getExpration()
-    const sigPayload = { email: 'test@example', exp }
+    const sigExp = getExpration()
+    const sigPayload = { email: 'test@example' }
     const sigAlgorithm = 'sha256'
     const sigSecret = getSecret()
     const take = 6
@@ -27,6 +27,7 @@ describe('Passphrases', () => {
     // generate
     const passphrases = await generate({
       sigPayload,
+      sigExp,
       sigAlgorithm,
       sigSecret,
       sigDict: dict,
@@ -50,15 +51,16 @@ describe('Passphrases', () => {
     expect(isValid).toBe(true)
   })
 
-  test('generate: empty secret', async () => {
-    const exp = getExpration()
-    const sigPayload = { email: 'test@example', exp }
+  test('cannnot generate with empty secret', async () => {
+    const sigExp = getExpration()
+    const sigPayload = { email: 'test@example' }
     const sigAlgorithm = 'sha256'
     const sigSecret = ''
 
     await expect(async () => {
       await generate({
         sigPayload,
+        sigExp,
         sigAlgorithm,
         sigSecret,
         sigDict: dict,
@@ -67,15 +69,34 @@ describe('Passphrases', () => {
     }).rejects.toThrowError(InputError)
   })
 
-  test('generate: take', async () => {
-    const exp = getExpration()
-    const sigPayload = { email: 'test@example', exp }
+  test('can take shorter passphrases', async () => {
+    const sigExp = getExpration()
+    const sigPayload = { email: 'test@example' }
+    const sigAlgorithm = 'sha256'
+    const sigSecret = getSecret()
+
+    const passphrases = await generate({
+      sigPayload,
+      sigExp,
+      sigAlgorithm,
+      sigSecret,
+      sigDict: dict,
+      expDict: dict,
+      take: 1,
+    })
+    expect(passphrases).toHaveLength(1)
+  })
+
+  test('cannot take oversize passphrases', async () => {
+    const sigExp = getExpration()
+    const sigPayload = { email: 'test@example' }
     const sigAlgorithm = 'sha256'
     const sigSecret = getSecret()
 
     await expect(async () => {
       await generate({
         sigPayload,
+        sigExp,
         sigAlgorithm,
         sigSecret,
         sigDict: dict,
@@ -85,47 +106,40 @@ describe('Passphrases', () => {
     }).rejects.toThrowError(DictError)
   })
 
-  test('generate: custom dict', async () => {
-    const exp = getExpration()
-    const sigPayload = { email: 'test@example', exp }
+  test('can use custom dict', async () => {
+    const sigExp = getExpration()
+    const sigPayload = { email: 'test@example' }
     const sigAlgorithm = 'sha256'
     const sigSecret = getSecret()
 
-    // custom dict
     const passphrases = await generate({
       sigPayload,
+      sigExp,
       sigAlgorithm,
       sigSecret,
       sigDict: loadDict('dict.json'),
       expDict: dict,
     })
     passphrases.forEach((p) => expect(typeof p).toBe('string'))
-
-    // // not enough words to generate passphrases
-    // expect(() => {
-    //   generate({
-    //     sigPayload,
-    //     sigAlgorithm,
-    //     sigSecret,
-    //     sigDict: loadDict('dict.json'),
-    //   })
-    // }).toThrowError()
   })
 
-  test('generate: custom exp diff since', async () => {
-    const exp = getExpration()
-    const sigPayload = { email: 'test@example', exp }
+  test('can custom expDictDiffSince', async () => {
+    const sigExp = getExpration()
+    const sigPayload = { email: 'test@example' }
     const sigAlgorithm = 'sha256'
     const sigSecret = getSecret()
+    const startOfToday = getStartOfDate(new Date().getDate())
 
     // generate
     const passphrases = await generate({
       sigPayload,
+      sigExp,
+
       sigAlgorithm,
       sigSecret,
       sigDict: dict,
       expDict: dict,
-      expDictDiffSince: getStartOfDate(new Date().getDate() - 1),
+      expDictDiffSince: startOfToday,
     })
     passphrases.forEach((p) => expect(typeof p).toBe('string'))
 
@@ -138,19 +152,25 @@ describe('Passphrases', () => {
       sigDict: dict,
       expDict: dict,
       expIndexDict: indexDict,
-      expDictDiffSince: getStartOfDate(new Date().getDate() - 1),
+      expDictDiffSince: startOfToday,
     })
     expect(isValid).toBe(true)
   })
+})
 
-  test('verify: expired passphrases', async () => {
-    const exp = Date.now() - 1000 * 60 * 5 // 5 minutes ago
-    const sigPayload = { email: 'test@example', exp }
+describe('Verify Passphrases', () => {
+  const dict = loadDict()
+  const indexDict = loadIndexDict()
+
+  test('expired passphrases', async () => {
+    const sigExp = Date.now() - 1000 * 60 * 5 // 5 minutes ago
+    const sigPayload = { email: 'test@example' }
     const sigAlgorithm = 'sha256'
     const sigSecret = getSecret()
 
     const passphrases = await generate({
       sigPayload,
+      sigExp,
       sigAlgorithm,
       sigSecret,
       sigDict: dict,
@@ -170,9 +190,9 @@ describe('Passphrases', () => {
     }).rejects.toThrowError(PassphrasesExpiredError)
   })
 
-  test('verify: wrong exp word', async () => {
-    const exp = getExpration()
-    const sigPayload = { email: 'test@example', exp }
+  test('wrong exp word', async () => {
+    const sigExp = getExpration()
+    const sigPayload = { email: 'test@example' }
     const sigAlgorithm = 'sha256'
     const sigSecret = getSecret()
     const take = 6
@@ -180,6 +200,7 @@ describe('Passphrases', () => {
     // generate
     const passphrases = await generate({
       sigPayload,
+      sigExp,
       sigAlgorithm,
       sigSecret,
       sigDict: dict,
@@ -204,14 +225,15 @@ describe('Passphrases', () => {
     }).rejects.toThrowError(DictError)
   })
 
-  test('verify: wrong passphrases', async () => {
-    const exp = getExpration()
+  test('wrong passphrases', async () => {
+    const sigExp = getExpration()
     const sigAlgorithm = 'sha256'
-    const sigPayload = { email: 'test@example', exp }
+    const sigPayload = { email: 'test@example' }
     const sigSecret = getSecret()
 
     const passphrases = await generate({
       sigPayload,
+      sigExp,
       sigAlgorithm,
       sigSecret,
       sigDict: dict,
@@ -227,6 +249,149 @@ describe('Passphrases', () => {
         sigDict: dict,
         expDict: dict,
         expIndexDict: indexDict,
+      })
+    }).rejects.toThrowError(PassphrasesMismatchError)
+  })
+
+  test('wrong secret', async () => {
+    const sigExp = getExpration()
+    const sigAlgorithm = 'sha256'
+    const sigPayload = { email: 'test@example' }
+    const sigSecret = getSecret()
+
+    const wrongPassphrases = await generate({
+      sigPayload,
+      sigExp,
+      sigAlgorithm,
+      sigSecret: sigSecret + 'wrong',
+      sigDict: dict,
+      expDict: dict,
+    })
+
+    await expect(async () => {
+      await verify({
+        passphrases: wrongPassphrases,
+        sigPayload,
+        sigAlgorithm,
+        sigSecret,
+        sigDict: dict,
+        expDict: dict,
+        expIndexDict: indexDict,
+      })
+    }).rejects.toThrowError(PassphrasesMismatchError)
+  })
+
+  test('wrong sigPayload', async () => {
+    const sigExp = getExpration()
+    const sigAlgorithm = 'sha256'
+    const sigPayload = { email: 'test@example' }
+    const sigSecret = getSecret()
+
+    const passphrases = await generate({
+      sigPayload,
+      sigExp,
+      sigAlgorithm,
+      sigSecret,
+      sigDict: dict,
+      expDict: dict,
+    })
+
+    await expect(async () => {
+      await verify({
+        passphrases,
+        sigPayload: { ...sigPayload, id: 'wrong' },
+        sigAlgorithm,
+        sigSecret,
+        sigDict: dict,
+        expDict: dict,
+        expIndexDict: indexDict,
+      })
+    }).rejects.toThrowError(PassphrasesMismatchError)
+  })
+
+  test('wrong sigAlgorithm', async () => {
+    const sigExp = getExpration()
+    const sigAlgorithm = 'sha256'
+    const sigPayload = { email: 'test@example' }
+    const sigSecret = getSecret()
+
+    const passphrases = await generate({
+      sigPayload,
+      sigExp,
+      sigAlgorithm,
+      sigSecret,
+      sigDict: dict,
+      expDict: dict,
+    })
+
+    await expect(async () => {
+      await verify({
+        passphrases,
+        sigPayload,
+        sigAlgorithm: 'sha512',
+        sigSecret,
+        sigDict: dict,
+        expDict: dict,
+        expIndexDict: indexDict,
+      })
+    }).rejects.toThrowError(PassphrasesMismatchError)
+  })
+
+  test('wrong take', async () => {
+    const sigExp = getExpration()
+    const sigAlgorithm = 'sha256'
+    const sigPayload = { email: 'test@example' }
+    const sigSecret = getSecret()
+
+    const passphrases = await generate({
+      sigPayload,
+      sigExp,
+      sigAlgorithm,
+      sigSecret,
+      sigDict: dict,
+      expDict: dict,
+    })
+
+    await expect(async () => {
+      await verify({
+        passphrases,
+        sigPayload,
+        sigAlgorithm: 'sha512',
+        sigSecret,
+        sigDict: dict,
+        expDict: dict,
+        expIndexDict: indexDict,
+        take: 1,
+      })
+    }).rejects.toThrowError(PassphrasesMismatchError)
+  })
+
+  test('wrong expDictDiffSince', async () => {
+    const sigExp = getExpration()
+    const sigAlgorithm = 'sha256'
+    const sigPayload = { email: 'test@example' }
+    const sigSecret = getSecret()
+    const startOfToday = getStartOfDate(new Date().getDate())
+
+    const passphrases = await generate({
+      sigPayload,
+      sigExp,
+      sigAlgorithm,
+      sigSecret,
+      sigDict: dict,
+      expDict: dict,
+    })
+
+    await expect(async () => {
+      await verify({
+        passphrases,
+        sigPayload,
+        sigAlgorithm,
+        sigSecret,
+        sigDict: dict,
+        expDict: dict,
+        expIndexDict: indexDict,
+        expDictDiffSince: startOfToday,
       })
     }).rejects.toThrowError(PassphrasesMismatchError)
   })
